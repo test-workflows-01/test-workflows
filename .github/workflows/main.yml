@@ -75,12 +75,15 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     needs: [detect_path_changes, check_job_duplicates]
+    # if: |
+    #   always() && 
+    #   (
+    #     needs.check_job_duplicates.outputs.src != 'true' && 
+    #     (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.src == 'true')
+    #   )
     if: |
-      always() && 
-      (
-        needs.check_job_duplicates.outputs.src != 'true' && 
-        (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.src == 'true')
-      )
+      needs.check_job_duplicates.outputs.src != 'true' && 
+      (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.src == 'true')
     name: 🏗️ Run SRC Jobs
     steps:
       - name: Run SRC Job
@@ -90,12 +93,15 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     needs: [detect_path_changes, check_job_duplicates]
+    # if: |
+    #   always() && 
+    #   (
+    #     needs.check_job_duplicates.outputs.front != 'true' && 
+    #     (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.front == 'true')
+    #   )
     if: |
-      always() && 
-      (
-        needs.check_job_duplicates.outputs.front != 'true' && 
-        (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.front == 'true')
-      )
+      needs.check_job_duplicates.outputs.front != 'true' && 
+      (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.front == 'true')
     name: 🏗️ Run FRONT Jobs
     steps:
       - name: Run FRONT Job
@@ -105,12 +111,15 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     needs: [detect_path_changes, check_job_duplicates]
+    # if: |
+    #   always() && 
+    #   (
+    #     needs.check_job_duplicates.outputs.backend != 'true' && 
+    #     (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.backend == 'true')
+    #   )
     if: |
-      always() && 
-      (
-        needs.check_job_duplicates.outputs.backend != 'true' && 
-        (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.backend == 'true')
-      )
+      needs.check_job_duplicates.outputs.backend != 'true' && 
+      (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.backend == 'true')
     name: 🏗️ Run BACKEND Jobs
     steps:
       - name: Run BACKEND Job
