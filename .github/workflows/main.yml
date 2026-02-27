@@ -1,0 +1,67 @@
+name: PR workflow
+on:
+  pull_request:
+  merge_group:
+    types: [checks_requested]
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  detect_path_changes:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    name: 🚦 Detect changed paths [DORNY]
+    outputs:
+      src: ${{ steps.filter.outputs.backend }}
+      root: ${{ steps.filter.outputs.root }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Filter paths
+        id: filter
+        uses: dorny/paths-filter@v3.0.2
+        with:
+          filters: |
+            src:
+              - 'src/**'
+            root:
+              - '*'
+              - '.github/**'
+
+  check_job_duplicates:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    name: 🚦 Check successful duplicates [FKIRC]
+    if: ${{ github.event_name == 'pull_request' }}
+    outputs:
+      src: ${{ steps.src.outputs.should_skip }}
+    steps:
+      - name: Check backend duplicate
+        id: src
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          paths: '["*", ".github/**", "src/**"]'
+          skip_after_successful_duplicate: 'true'
+          concurrent_skipping: 'never'
+
+  src-job:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs: [detect_path_changes, check_job_duplicates]
+    if: |
+      always() && 
+      (
+        needs.detect_path_changes.outputs.src == 'true' ||
+        (
+          needs.detect_path_changes.outputs.src == 'true' && 
+          needs.check_job_duplicates.outputs.src != 'true'
+        ) 
+      )
+    name: Run SRC Jobs
+    steps:
+      - name: Run SRC Job
+        run: echo "Running SRC Job 👟"
+      
