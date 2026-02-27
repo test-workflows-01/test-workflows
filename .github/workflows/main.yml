@@ -14,6 +14,8 @@ jobs:
     name: 🚦 Detect changed paths [DORNY]
     outputs:
       src: ${{ steps.filter.outputs.src }}
+      front: ${{ steps.filter.outputs.front }}
+      backend: ${{ steps.filter.outputs.backend }}
       root: ${{ steps.filter.outputs.root }}
     steps:
       - name: Checkout repository
@@ -27,6 +29,10 @@ jobs:
           filters: |
             src:
               - 'src/**'
+            front:
+              - 'front/**'
+            backend:
+              - 'backend/**'
             root:
               - '*'
               - '.github/**'
@@ -38,12 +44,30 @@ jobs:
     if: ${{ github.event_name == 'pull_request' }}
     outputs:
       src: ${{ steps.src.outputs.should_skip }}
+      front: ${{ steps.front.outputs.should_skip }}
+      backend: ${{ steps.backend.outputs.should_skip }}
     steps:
       - name: Check src duplicate
         id: src
         uses: fkirc/skip-duplicate-actions@v5
         with:
           paths: '["*", ".github/**", "src/**"]'
+          skip_after_successful_duplicate: 'true'
+          concurrent_skipping: 'never'
+
+      - name: Check src duplicate
+        id: front
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          paths: '["*", ".github/**", "front/**"]'
+          skip_after_successful_duplicate: 'true'
+          concurrent_skipping: 'never'
+
+      - name: Check src duplicate
+        id: backend
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          paths: '["*", ".github/**", "backend/**"]'
           skip_after_successful_duplicate: 'true'
           concurrent_skipping: 'never'
 
@@ -61,4 +85,34 @@ jobs:
     steps:
       - name: Run SRC Job
         run: echo "Running SRC Job 👟"
+
+  front-job:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs: [detect_path_changes, check_job_duplicates]
+    if: |
+      always() && 
+      (
+        needs.check_job_duplicates.outputs.front != 'true' && 
+        (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.front == 'true')
+      )
+    name: 🏗️ Run FRONT Jobs
+    steps:
+      - name: Run FRONT Job
+        run: echo "Running FRONT Job 🐥"
+
+  backend-job:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    needs: [detect_path_changes, check_job_duplicates]
+    if: |
+      always() && 
+      (
+        needs.check_job_duplicates.outputs.backend != 'true' && 
+        (needs.detect_path_changes.outputs.root == 'true' || needs.detect_path_changes.outputs.backend == 'true')
+      )
+    name: 🏗️ Run BACKEND Jobs
+    steps:
+      - name: Run BACKEND Job
+        run: echo "Running BACKEND Job ↩️"
       
